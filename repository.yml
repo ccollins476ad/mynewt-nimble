@@ -21,6 +21,7 @@ repo.name: apache-mynewt-nimble
 repo.versions:
     "0.0.0": "master"
     "0.0.1": "stable"
+    "0.0.2": "Feature-dtm_vendor_specific"
 
     "0-dev": "0.0.0"
     "0-latest": "1.0.0"
