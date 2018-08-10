@@ -454,6 +454,7 @@ ble_ll_hci_le_rd_sugg_data_len(uint8_t *rspbuf, uint8_t *rsplen)
  *
  * @return int BLE error code
  */
+#if MYNEWT_VAL(BLE_LL_CFG_FEAT_DATA_LEN_EXT)
 static int
 ble_ll_hci_le_rd_max_data_len(uint8_t *rspbuf, uint8_t *rsplen)
 {
@@ -465,6 +466,7 @@ ble_ll_hci_le_rd_max_data_len(uint8_t *rspbuf, uint8_t *rsplen)
     *rsplen = BLE_HCI_RD_MAX_DATALEN_RSPLEN;
     return BLE_ERR_SUCCESS;
 }
+#endif
 
 /**
  * HCI read local supported features command. Returns the features
