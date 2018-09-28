@@ -700,3 +700,44 @@ ble_hs_init(void)
     ble_monitor_new_index(0, (uint8_t[6]){ }, "nimble0");
 #endif
 }
+
+static int
+ble_hs_shutdown_one_conn(void)
+{
+    uint16_t handle;
+    int rc;
+
+    handle = ble_hs_atomic_first_conn_handle();
+    if (handle == BLE_HS_CONN_HANDLE_NONE) {
+        return SYSDOWN_COMPLETE;
+    }
+
+    rc = ble_gap_terminate(handle, BLE_ERR_REM_USER_CONN_TERM);
+    switch (rc) {
+    case 0:
+    case BLE_HS_EALREADY:
+        return SYSDOWN_IN_PROGRESS;
+
+    case BLE_HS_ENOTCONN:
+        return ble_hs_shutdown_one_conn();
+
+    default:
+        /* XXX: Log error. */
+        return SYSDOWN_COMPLETE;
+    }
+}
+
+int
+ble_hs_shutdown(void)
+{
+    int rc;
+
+    /* Ensure this function only gets called by sysdown. */
+    SYSDOWN_ASSERT_ACTIVE();
+
+    /* Abort all active GAP procedures; prevent new ones from starting. */
+    ble_gap_preempt();
+
+    /* Terminate all established connections. */
+    return ble_hs_shutdown_one_conn();
+}

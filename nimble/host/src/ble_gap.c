@@ -3756,6 +3756,7 @@ ble_gap_conn_active(void)
 /*****************************************************************************
  * $terminate connection procedure                                           *
  *****************************************************************************/
+
 int
 ble_gap_terminate(uint16_t conn_handle, uint8_t hci_reason)
 {

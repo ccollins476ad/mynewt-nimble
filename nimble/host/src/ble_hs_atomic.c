@@ -113,3 +113,33 @@ ble_hs_atomic_first_conn_handle(void)
 
     return conn_handle;
 }
+
+int
+ble_hs_atomic_all_conn_handles(uint16_t *handles, int *num_handles,
+                               int max_handles)
+{
+    const struct ble_hs_conn *conn;
+    int rc;
+
+    /* Assume success. */
+    rc = 0;
+
+    ble_hs_lock();
+
+    *num_handles = 0;
+    for (conn = ble_hs_conn_first();
+         conn != NULL;
+         conn = SLIST_NEXT(conn, bhc_next)) {
+
+        if (*num_handles >= max_handles) {
+            rc = BLE_HS_ENOMEM;
+            break;
+        }
+
+        handles[(*num_handles)++] = conn->bhc_handle;
+    }
+
+    ble_hs_unlock();
+
+    return rc;
+}
