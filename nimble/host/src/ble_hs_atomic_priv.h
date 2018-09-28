@@ -33,6 +33,8 @@ int ble_hs_atomic_conn_flags(uint16_t conn_handle,
 int ble_hs_atomic_conn_set_flags(uint16_t conn_handle,
                                  ble_hs_conn_flags_t flags, int on);
 uint16_t ble_hs_atomic_first_conn_handle(void);
+int ble_hs_atomic_all_conn_handles(uint16_t *handles, int *num_handles,
+                                   int max_handles);
 
 #ifdef __cplusplus
 }

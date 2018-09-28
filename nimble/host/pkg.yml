@@ -50,3 +50,6 @@ pkg.req_apis:
 
 pkg.init:
     ble_hs_init: 200
+
+pkg.down:
+    ble_hs_shutdown: 200

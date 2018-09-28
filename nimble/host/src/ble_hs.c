@@ -55,6 +55,7 @@ static struct ble_npl_event ble_hs_ev_reset;
 static struct ble_npl_event ble_hs_ev_start;
 
 uint8_t ble_hs_sync_state;
+uint8_t ble_hs_enabled_state;
 static int ble_hs_reset_reason;
 
 #define BLE_HS_SYNC_RETRY_TIMEOUT_MS    100 /* ms */
@@ -305,6 +306,12 @@ ble_hs_clear_rx_queue(void)
 }
 
 int
+ble_hs_enabled(void)
+{
+    return ble_hs_enabled_state == BLE_HS_ENABLED_STATE_ON;
+}
+
+int
 ble_hs_synced(void)
 {
     return ble_hs_sync_state == BLE_HS_SYNC_STATE_GOOD;
@@ -394,7 +401,7 @@ ble_hs_timer_exp(struct ble_npl_event *ev)
 {
     int32_t ticks_until_next;
 
-    if (!ble_hs_sync_state) {
+    if (ble_hs_sync_state == BLE_HS_SYNC_STATE_BAD) {
         ble_hs_reset();
         return;
     }
@@ -550,6 +557,32 @@ ble_hs_start(void)
 {
     int rc;
 
+    ble_hs_lock();
+    switch (ble_hs_enabled_state) {
+    case BLE_HS_ENABLED_STATE_ON:
+        rc = BLE_HS_EALREADY;
+        break;
+
+    case BLE_HS_ENABLED_STATE_STOPPING:
+        rc = BLE_HS_EBUSY;
+        break;
+
+    case BLE_HS_ENABLED_STATE_OFF:
+        ble_hs_enabled_state = BLE_HS_ENABLED_STATE_ON;
+        rc = 0;
+        break;
+
+    default:
+        assert(0);
+        rc = BLE_HS_EUNKNOWN;
+        break;
+    }
+    ble_hs_unlock();
+
+    if (rc != 0) {
+        return rc;
+    }
+
     ble_hs_parent_task = ble_npl_get_current_task_id();
 
     ble_npl_callout_init(&ble_hs_timer_timer, ble_hs_evq,
@@ -631,6 +664,7 @@ ble_hs_init(void)
      * bss.
      */
     ble_hs_reset_reason = 0;
+    ble_hs_enabled_state = BLE_HS_ENABLED_STATE_OFF;
 
     ble_npl_event_init(&ble_hs_ev_tx_notifications, ble_hs_event_tx_notify, NULL);
     ble_npl_event_init(&ble_hs_ev_reset, ble_hs_event_reset, NULL);
@@ -663,6 +697,8 @@ ble_hs_init(void)
 
     rc = ble_gatts_init();
     SYSINIT_PANIC_ASSERT(rc == 0);
+
+    ble_hs_stop_init();
 
     ble_mqueue_init(&ble_hs_rx_q, ble_hs_event_rx_data, NULL);
 

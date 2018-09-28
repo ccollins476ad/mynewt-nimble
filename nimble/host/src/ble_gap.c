@@ -2080,6 +2080,11 @@ ble_gap_adv_start(uint8_t own_addr_type, const ble_addr_t *direct_addr,
         }
     }
 
+    if (!ble_hs_enabled()) {
+        rc = BLE_HS_EDISABLED;
+        goto done;
+    }
+
     if (ble_gap_is_preempted()) {
         rc = BLE_HS_EPREEMPTED;
         goto done;
@@ -3091,6 +3096,10 @@ ble_gap_disc_ext_validate(uint8_t own_addr_type)
         return BLE_HS_EALREADY;
     }
 
+    if (!ble_hs_on()) {
+        return BLE_HS_EDISABLED;
+    }
+
     if (ble_gap_is_preempted()) {
         return BLE_HS_EPREEMPTED;
     }
@@ -3558,6 +3567,10 @@ ble_gap_ext_connect(uint8_t own_addr_type, const ble_addr_t *peer_addr,
         goto done;
     }
 
+    if (!ble_hs_on()) {
+        return BLE_HS_EDISABLED;
+    }
+
     if (ble_gap_is_preempted()) {
         rc = BLE_HS_EPREEMPTED;
         goto done;
@@ -3676,6 +3689,11 @@ ble_gap_connect(uint8_t own_addr_type, const ble_addr_t *peer_addr,
         goto done;
     }
 
+    if (!ble_hs_enabled()) {
+        rc = BLE_HS_EDISABLED;
+        goto done;
+    }
+
     if (ble_gap_is_preempted()) {
         rc = BLE_HS_EPREEMPTED;
         goto done;
@@ -3769,6 +3787,7 @@ ble_gap_conn_active(void)
 /*****************************************************************************
  * $terminate connection procedure                                           *
  *****************************************************************************/
+
 int
 ble_gap_terminate(uint16_t conn_handle, uint8_t hci_reason)
 {
@@ -4534,6 +4553,46 @@ ble_gap_mtu_event(uint16_t conn_handle, uint16_t cid, uint16_t mtu)
  * $preempt                                                                  *
  *****************************************************************************/
 
+void
+ble_gap_abort_all(bool preempt)
+{
+    int rc;
+    int i;
+
+    (void)rc;
+    (void)i;
+
+#if NIMBLE_BLE_ADVERTISE
+#if MYNEWT_VAL(BLE_EXT_ADV)
+    for (i = 0; i < BLE_ADV_INSTANCES; i++) {
+        rc = ble_gap_ext_adv_stop_no_lock(i);
+        if (preempt && rc == 0) {
+            ble_gap_slave[i].preempted = 1;
+        }
+    }
+#else
+    rc = ble_gap_adv_stop_no_lock();
+    if (preempt && rc == 0) {
+        ble_gap_slave[0].preempted = 1;
+    }
+#endif
+#endif
+
+#if NIMBLE_BLE_CONNECT
+    rc = ble_gap_conn_cancel_no_lock();
+    if (preempt && rc == 0) {
+        ble_gap_master.preempted_op = BLE_GAP_OP_M_CONN;
+    }
+#endif
+
+#if NIMBLE_BLE_SCAN
+    rc = ble_gap_disc_cancel_no_lock();
+    if (preempt && rc == 0) {
+        ble_gap_master.preempted_op = BLE_GAP_OP_M_DISC;
+    }
+#endif
+}
+
 /**
  * Aborts all active GAP procedures and prevents new ones from being started.
  * This function is used to ensure an idle GAP so that the controller's
@@ -4547,52 +4606,14 @@ ble_gap_mtu_event(uint16_t conn_handle, uint16_t cid, uint16_t mtu)
 void
 ble_gap_preempt(void)
 {
-    int rc;
-    int i;
-
-    (void)rc;
-    (void) i;
-
     ble_hs_lock();
-
-    BLE_HS_DBG_ASSERT(!ble_gap_is_preempted());
-
-#if NIMBLE_BLE_ADVERTISE
-#if MYNEWT_VAL(BLE_EXT_ADV)
-    for (i = 0; i < BLE_ADV_INSTANCES; i++) {
-        rc = ble_gap_ext_adv_stop_no_lock(i);
-        if (rc == 0) {
-            ble_gap_slave[i].preempted = 1;
-        }
-    }
-#else
-    rc = ble_gap_adv_stop_no_lock();
-    if (rc == 0) {
-        ble_gap_slave[0].preempted = 1;
-    }
-#endif
-#endif
-
-#if NIMBLE_BLE_CONNECT
-    rc = ble_gap_conn_cancel_no_lock();
-    if (rc == 0) {
-        ble_gap_master.preempted_op = BLE_GAP_OP_M_CONN;
-    }
-#endif
-
-#if NIMBLE_BLE_SCAN
-    rc = ble_gap_disc_cancel_no_lock();
-    if (rc == 0) {
-        ble_gap_master.preempted_op = BLE_GAP_OP_M_DISC;
-    }
-#endif
-
+    ble_gap_abort_all(true);
     ble_hs_unlock();
 }
 
 /**
  * Takes GAP out of the preempted state, allowing new GAP procedures to be
- * initiaited.  This function should only be called after a call to
+ * initiated.  This function should only be called after a call to
  * `ble_gap_preempt()`.
  */
 
