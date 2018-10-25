@@ -416,5 +416,10 @@ syscfg.defs:
             a necessary workaround when interfacing with some controllers.
         value: 0
 
+    BLE_HS_SYSINIT_STAGE:
+        description: >
+            Sysinit stage for the NimBLE host.
+        value: 200
+
 syscfg.vals.BLE_MESH:
     BLE_SM_SC: 1
