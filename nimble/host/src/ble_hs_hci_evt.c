@@ -231,6 +231,7 @@ ble_hs_hci_evt_num_completed_pkts(uint8_t event_code, uint8_t *data, int len)
     int i;
 
     if (len < BLE_HCI_EVENT_HDR_LEN + BLE_HCI_EVENT_NUM_COMP_PKTS_HDR_LEN) {
+        STATS_INC(ble_hs_stats, hci_num_comp_pkts_bad);
         return BLE_HS_ECONTROLLER;
     }
 
@@ -238,6 +239,7 @@ ble_hs_hci_evt_num_completed_pkts(uint8_t event_code, uint8_t *data, int len)
     num_handles = data[off];
     if (len < BLE_HCI_EVENT_NUM_COMP_PKTS_HDR_LEN +
               num_handles * BLE_HCI_EVENT_NUM_COMP_PKTS_ENT_LEN) {
+        STATS_INC(ble_hs_stats, hci_num_comp_pkts_bad);
         return BLE_HS_ECONTROLLER;
     }
     off++;
@@ -259,8 +261,10 @@ ble_hs_hci_evt_num_completed_pkts(uint8_t event_code, uint8_t *data, int len)
             conn = ble_hs_conn_find(handle);
             if (conn != NULL) {
                 if (conn->bhc_outstanding_pkts < num_pkts) {
+                    STATS_INC(ble_hs_stats, hci_num_comp_pkts_bad);
                     ble_hs_sched_reset(BLE_HS_ECONTROLLER);
                 } else {
+                    STATS_INCN(ble_hs_stats, hci_num_comp_pkts_good, num_pkts);
                     conn->bhc_outstanding_pkts -= num_pkts;
                 }
 
@@ -275,6 +279,7 @@ ble_hs_hci_evt_num_completed_pkts(uint8_t event_code, uint8_t *data, int len)
     }
 
     if (tx_outstanding) {
+        STATS_INC(ble_hs_stats, wakeups);
         ble_hs_wakeup_tx();
     }
 

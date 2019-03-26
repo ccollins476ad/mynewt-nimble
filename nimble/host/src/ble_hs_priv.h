@@ -89,6 +89,13 @@ STATS_SECT_START(ble_hs_stats)
     STATS_SECT_ENTRY(sync)
     STATS_SECT_ENTRY(pvcy_add_entry)
     STATS_SECT_ENTRY(pvcy_add_entry_fail)
+    STATS_SECT_ENTRY(hci_total_txed_frags)
+    STATS_SECT_ENTRY(hci_num_comp_pkts_bad)
+    STATS_SECT_ENTRY(hci_num_comp_pkts_good)
+    STATS_SECT_ENTRY(wakeups)
+    STATS_SECT_ENTRY(hci_frag_err_mem)
+    STATS_SECT_ENTRY(hci_frag_err_prepend)
+    STATS_SECT_ENTRY(hci_frag_err_ctlr_capacity)
 STATS_SECT_END
 extern STATS_SECT_DECL(ble_hs_stats) ble_hs_stats;
 

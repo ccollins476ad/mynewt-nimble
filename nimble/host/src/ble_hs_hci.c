@@ -518,12 +518,14 @@ ble_hs_hci_acl_tx_now(struct ble_hs_conn *conn, struct os_mbuf **om)
         frag = mem_split_frag(&txom, ble_hs_hci_max_acl_payload_sz(),
                               ble_hs_hci_frag_alloc, NULL);
         if (frag == NULL) {
+            STATS_INC(ble_hs_stats, hci_frag_err_mem);
             *om = txom;
             return BLE_HS_EAGAIN;
         }
 
         frag = ble_hs_hci_acl_hdr_prepend(frag, conn->bhc_handle, pb);
         if (frag == NULL) {
+            STATS_INC(ble_hs_stats, hci_frag_err_prepend);
             rc = BLE_HS_ENOMEM;
             goto err;
         }
@@ -539,6 +541,8 @@ ble_hs_hci_acl_tx_now(struct ble_hs_conn *conn, struct os_mbuf **om)
             goto err;
         }
 
+        STATS_INC(ble_hs_stats, hci_total_txed_frags);
+
         /* If any fragments remain, they should be marked as 'middle'
          * fragments.
          */
@@ -552,6 +556,7 @@ ble_hs_hci_acl_tx_now(struct ble_hs_conn *conn, struct os_mbuf **om)
 
     if (txom != NULL) {
         /* The controller couldn't accommodate some or all of the packet. */
+        STATS_INC(ble_hs_stats, hci_frag_err_ctlr_capacity);
         *om = txom;
         return BLE_HS_EAGAIN;
     }

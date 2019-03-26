@@ -102,6 +102,13 @@ STATS_NAME_START(ble_hs_stats)
     STATS_NAME(ble_hs_stats, sync)
     STATS_NAME(ble_hs_stats, pvcy_add_entry)
     STATS_NAME(ble_hs_stats, pvcy_add_entry_fail)
+    STATS_NAME(ble_hs_stats, hci_total_txed_frags)
+    STATS_NAME(ble_hs_stats, hci_num_comp_pkts_bad)
+    STATS_NAME(ble_hs_stats, hci_num_comp_pkts_good)
+    STATS_NAME(ble_hs_stats, wakeups)
+    STATS_NAME(ble_hs_stats, hci_frag_err_mem)
+    STATS_NAME(ble_hs_stats, hci_frag_err_prepend)
+    STATS_NAME(ble_hs_stats, hci_frag_err_ctlr_capacity)
 STATS_NAME_END(ble_hs_stats)
 
 struct ble_npl_eventq *

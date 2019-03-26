@@ -267,6 +267,7 @@ ble_ll_conn_num_comp_pkts_event_send(struct ble_ll_conn_sm *connsm)
                 put_le16(evbuf + 3, connsm->conn_handle);
                 put_le16(evbuf + 5, connsm->completed_pkts);
                 ble_ll_hci_event_send(evbuf);
+                STATS_INCN(ble_ll_stats, num_comp_pkts, connsm->completed_pkts);
                 connsm->completed_pkts = 0;
             }
         }
@@ -299,6 +300,7 @@ skip_conn:
             /* Add handle and complete packets */
             put_le16(handle_ptr, connsm->conn_handle);
             put_le16(handle_ptr + 2, connsm->completed_pkts);
+            STATS_INCN(ble_ll_stats, num_comp_pkts, connsm->completed_pkts);
             connsm->completed_pkts = 0;
             handle_ptr += (2 * sizeof(uint16_t));
             ++handles;
