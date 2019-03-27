@@ -96,6 +96,7 @@ STATS_SECT_START(ble_hs_stats)
     STATS_SECT_ENTRY(hci_frag_err_mem)
     STATS_SECT_ENTRY(hci_frag_err_prepend)
     STATS_SECT_ENTRY(hci_frag_err_ctlr_capacity)
+    STATS_SECT_ENTRY(hci_reclaimed_frags)
 STATS_SECT_END
 extern STATS_SECT_DECL(ble_hs_stats) ble_hs_stats;
 

@@ -109,6 +109,7 @@ STATS_NAME_START(ble_hs_stats)
     STATS_NAME(ble_hs_stats, hci_frag_err_mem)
     STATS_NAME(ble_hs_stats, hci_frag_err_prepend)
     STATS_NAME(ble_hs_stats, hci_frag_err_ctlr_capacity)
+    STATS_NAME(ble_hs_stats, hci_reclaimed_frags)
 STATS_NAME_END(ble_hs_stats)
 
 struct ble_npl_eventq *

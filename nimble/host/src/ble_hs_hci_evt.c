@@ -161,6 +161,8 @@ ble_hs_hci_evt_disconn_complete(uint8_t event_code, uint8_t *data, int len)
     conn = ble_hs_conn_find(evt.connection_handle);
     if (conn != NULL) {
         ble_hs_hci_add_avail_pkts(conn->bhc_outstanding_pkts);
+        STATS_INCN(ble_hs_stats, hci_reclaimed_frags,
+                   conn->bhc_outstanding_pkts);
     }
     ble_hs_unlock();
 
